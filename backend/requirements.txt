@@ -23,9 +23,7 @@ google-auth==2.37.0
 openai==1.59.7
 
 numpy==1.26.4
-scikit-learn==1.6.0
 joblib==1.4.2
-scipy==1.14.1
 
 pdfplumber==0.11.5
 pdfminer.six==20231228
