@@ -82,7 +82,7 @@ spacy-loggers==1.0.5
 srsly==2.5.3
 starlette==1.1.0
 sympy==1.14.0
-thinc==8.3.13
+thinc==8.2.5
 threadpoolctl==3.6.0
 tokenizers==0.22.2
 torch==2.12.0
