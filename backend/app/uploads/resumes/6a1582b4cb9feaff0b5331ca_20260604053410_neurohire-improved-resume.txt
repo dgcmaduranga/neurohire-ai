@@ -1,0 +1,75 @@
+**Deep M. Mehta**  
+Redmond, WA  
+mail@deepmehta.co.in | deepmehta.co.in | github.com/deep-mm | linkedin.com/in/deepmehta97 | (123) 456-7890  
+
+---
+
+**Professional Summary**  
+Results-driven Full Stack Software Developer with a strong foundation in software engineering principles and a passion for building scalable applications. Proficient in both front-end and back-end development, with hands-on experience in cloud services, DevOps practices, and agile methodologies. Adept at problem-solving and optimizing processes to enhance operational efficiency. Seeking to leverage expertise in TypeScript, Node.js, and API development in a challenging software engineering role.
+
+---
+
+**Core Skills**  
+- **Languages:** C#, Java, Python, Ruby, JavaScript, TypeScript, SQL  
+- **Web & Mobile Technologies:** Angular, React, React Native, Android (XML, Java), Ruby on Rails, Django  
+- **Cloud Platforms:** Azure, AWS, Firebase  
+- **DevOps Tools:** Azure DevOps, GitHub Actions, Terraform, Docker, Kubernetes  
+- **Database Management:** SQL, MongoDB, PostgreSQL  
+- **API Development:** REST API, Backend APIs  
+- **Methodologies:** Agile, Testing, Problem Solving  
+
+---
+
+**Work Experience**  
+
+**Software Engineer**  
+Microsoft, Redmond, WA  
+June 2024 - Present  
+- Collaborate with cross-functional teams to develop and optimize software solutions for the Experiences + Devices organization, focusing on performance and scalability.
+
+**Software Development Engineer Intern**  
+Amazon, Seattle, WA  
+May 2023 - August 2023  
+- Developed a full-stack mobile application using React Native and backend APIs in Java, hosted on AWS.  
+- Integrated AWS Textract-powered OCR feature into the mobile app, reducing manual effort for over 50,000 monthly active users by 85% and significantly enhancing operational efficiency.
+
+**Technology Consultant**  
+Microsoft, Hyderabad, India  
+July 2019 - July 2022  
+- Led full-stack software development for web applications using Angular and React, alongside backend APIs in C# and Java, deployed on Azure.  
+- Designed and implemented an IoT-based healthcare platform utilizing Azure FHIR and IoT Hub, enabling researchers to collect and analyze data from participant devices.  
+- Spearheaded cloud governance initiatives for banking clients, securing cloud infrastructure with Azure Policy, and recognized with the Spark Award for successful project delivery.  
+- Automated CI/CD pipelines using Azure DevOps and GitHub Actions, improving deployment efficiency and quality assurance.  
+- Developed Infrastructure as Code (IaC) solutions using ARM Templates and Terraform for resource deployment in cloud environments.  
+- Executed extensive scripting with Ansible, PowerShell, and Unix Shell to automate configurations, enhancing operational workflows.
+
+---
+
+**Projects**  
+- **Generative AI:** Designed and implemented a GitHub bot leveraging advanced Language Models (LLMs) to automate the generation of Continuous Integration (CI) workflows, improving developer productivity. [github.com/apps/devops-llm-bot]  
+- **Azure Cloud Solution:** Engineered a secure password management solution utilizing Azure AD, KeyVault, VNet, and APIM to ensure robust data protection and access control.  
+- **DevOps Integration:** Created an IP solution that bridges Azure DevOps library features with GitHub Actions, widely adopted across Microsoft projects and available as an open-source tool on GitHub Marketplace.  
+- **Mobile App Development:** Developed Oncue, an innovative Android reminder app that utilizes Bluetooth technology, winning first prize in an app development marathon and achieving over 500 downloads on the Google Play Store.
+
+---
+
+**Education**  
+**North Carolina State University, Raleigh, NC**  
+Master of Computer Science, Expected May 2024  
+GPA: 4.0/4.0  
+
+**K J Somaiya College of Engineering, Mumbai, India**  
+Bachelor of Technology in Computer Engineering, May 2019  
+GPA: 9.1/10.0  
+
+---
+
+**Certifications**  
+- Azure Solutions Architect  
+- Azure DevOps Engineer  
+- Kubernetes Certified Application Developer  
+
+---
+
+**Additional Information**  
+- Awards: Best Consultant 2021, Spark Award 2021, Super Rookie 2020  
