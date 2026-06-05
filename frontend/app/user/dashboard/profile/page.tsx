@@ -17,7 +17,7 @@ import {
   User,
 } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 type UserProfile = {
   id?: string;
@@ -37,7 +37,7 @@ type ApiResponse = {
   status?: string;
   message?: string;
   user?: UserProfile;
-  detail?: string | Record<string, unknown>;
+  detail?: string | any;
 };
 
 export default function ProfilePage() {
@@ -70,33 +70,33 @@ export default function ProfilePage() {
 
   function getErrorMessage(data: ApiResponse) {
     if (typeof data?.detail === "string") return data.detail;
+    if (Array.isArray(data?.detail)) return data.detail[0]?.msg || "Validation error.";
     if (typeof data?.message === "string") return data.message;
-    if (data?.detail && typeof data.detail === "object") {
-      return JSON.stringify(data.detail);
-    }
     return "Something went wrong.";
   }
 
   function fillForm(profile: UserProfile) {
     setUser(profile);
+
     setName(profile.name || "");
     setUsername(profile.username || "");
     setEmail(profile.email || "");
+
     setPhone(profile.phone || "");
     setTargetRole(profile.target_role || "");
     setLocation(profile.location || "");
     setBio(profile.bio || "");
   }
 
+  function saveUserToBrowser(profile: UserProfile) {
+    localStorage.setItem("user", JSON.stringify(profile));
+    window.dispatchEvent(new Event("user-updated"));
+    window.dispatchEvent(new Event("dashboard-refresh"));
+  }
+
   async function fetchProfile() {
     setError("");
     setSuccess("");
-
-    if (!API_URL) {
-      setError("Backend API URL missing. Check NEXT_PUBLIC_API_URL.");
-      setLoading(false);
-      return;
-    }
 
     const token = getToken();
 
@@ -114,6 +114,7 @@ export default function ProfilePage() {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        cache: "no-store",
       });
 
       const data: ApiResponse = await response.json();
@@ -122,10 +123,20 @@ export default function ProfilePage() {
         throw new Error(getErrorMessage(data));
       }
 
-      if (data.user) {
-        fillForm(data.user);
+      const profile = data.user || data;
+
+      if (profile) {
+        fillForm(profile);
+        saveUserToBrowser(profile);
       }
     } catch (err) {
+      const savedUser = localStorage.getItem("user");
+
+      if (savedUser) {
+        const profile = JSON.parse(savedUser);
+        fillForm(profile);
+      }
+
       setError(err instanceof Error ? err.message : "Failed to load profile.");
     } finally {
       setLoading(false);
@@ -136,11 +147,6 @@ export default function ProfilePage() {
     payload: Record<string, string>,
     successMessage: string
   ) {
-    if (!API_URL) {
-      setError("Backend API URL missing. Check NEXT_PUBLIC_API_URL.");
-      return;
-    }
-
     const token = getToken();
 
     if (!token) {
@@ -150,6 +156,8 @@ export default function ProfilePage() {
 
     setError("");
     setSuccess("");
+
+    console.log("PROFILE UPDATE PAYLOAD:", payload);
 
     const response = await fetch(`${API_URL}/users/me`, {
       method: "PUT",
@@ -162,16 +170,24 @@ export default function ProfilePage() {
 
     const data: ApiResponse = await response.json();
 
+    console.log("PROFILE UPDATE RESPONSE:", data);
+
     if (!response.ok) {
       throw new Error(getErrorMessage(data));
     }
 
-    if (data.user) {
-      fillForm(data.user);
-      localStorage.setItem("user", JSON.stringify(data.user));
+    const profile = data.user || data;
+
+    if (profile) {
+      fillForm(profile);
+      saveUserToBrowser(profile);
     }
 
     setSuccess(successMessage);
+
+    setTimeout(() => {
+      setSuccess("");
+    }, 2500);
   }
 
   async function handlePersonalSubmit(event: FormEvent<HTMLFormElement>) {
@@ -182,9 +198,9 @@ export default function ProfilePage() {
 
       await updateProfile(
         {
-          name,
-          username,
-          email,
+          name: name.trim(),
+          username: username.trim(),
+          email: email.trim(),
         },
         "Personal information updated successfully."
       );
@@ -207,10 +223,10 @@ export default function ProfilePage() {
 
       await updateProfile(
         {
-          phone,
-          target_role: targetRole,
-          location,
-          bio,
+          phone: phone.trim(),
+          target_role: targetRole.trim(),
+          location: location.trim(),
+          bio: bio.trim(),
         },
         "Career information updated successfully."
       );
@@ -226,7 +242,7 @@ export default function ProfilePage() {
   async function handlePasswordSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (password.length < 6) {
+    if (password.trim().length < 6) {
       setError("Password must be at least 6 characters.");
       return;
     }
@@ -241,7 +257,7 @@ export default function ProfilePage() {
 
       await updateProfile(
         {
-          password,
+          password: password.trim(),
         },
         "Password updated successfully."
       );
@@ -268,7 +284,7 @@ export default function ProfilePage() {
             Loading profile...
           </h2>
           <p className="mt-2 text-sm font-semibold text-slate-500">
-            Please wait while we fetch your account details.
+            Preparing your account settings.
           </p>
         </div>
       </div>
@@ -285,12 +301,8 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <p className="text-sm font-bold text-blue-100">
-                Account Settings
-              </p>
-              <h1 className="text-3xl font-black sm:text-4xl">
-                My Profile
-              </h1>
+              <p className="text-sm font-bold text-blue-100">Account Settings</p>
+              <h1 className="text-3xl font-black sm:text-4xl">My Profile</h1>
               <p className="mt-2 text-sm font-semibold text-blue-100">
                 Manage your profile, career details and security information.
               </p>
@@ -332,21 +344,9 @@ export default function ProfilePage() {
           </div>
 
           <div className="mt-6 space-y-3 border-t border-blue-100 pt-5">
-            <ProfileMini
-              icon={Briefcase}
-              label="Target Role"
-              value={targetRole || "Not added"}
-            />
-            <ProfileMini
-              icon={MapPin}
-              label="Location"
-              value={location || "Not added"}
-            />
-            <ProfileMini
-              icon={Phone}
-              label="Phone"
-              value={phone || "Not added"}
-            />
+            <ProfileMini icon={Briefcase} label="Target Role" value={targetRole || "Not added"} />
+            <ProfileMini icon={MapPin} label="Location" value={location || "Not added"} />
+            <ProfileMini icon={Phone} label="Phone" value={phone || "Not added"} />
           </div>
 
           <div className="mt-6 rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-cyan-50 p-4">
@@ -356,6 +356,7 @@ export default function ProfilePage() {
                 NeuroHire Profile
               </p>
             </div>
+
             <p className="mt-2 text-xs font-semibold leading-5 text-slate-500">
               Keep your profile updated for better resume suggestions, job
               discovery and interview practice.
@@ -375,30 +376,9 @@ export default function ProfilePage() {
             />
 
             <div className="mt-6 grid gap-5 md:grid-cols-2">
-              <InputField
-                label="Full Name"
-                value={name}
-                onChange={setName}
-                placeholder="Charith Gamage"
-                icon={User}
-              />
-
-              <InputField
-                label="Username"
-                value={username}
-                onChange={setUsername}
-                placeholder="charithgamage"
-                icon={User}
-              />
-
-              <InputField
-                label="Email Address"
-                value={email}
-                onChange={setEmail}
-                placeholder="charith@gmail.com"
-                icon={Mail}
-                type="email"
-              />
+              <InputField label="Full Name" value={name} onChange={setName} placeholder="Charith Gamage" icon={User} />
+              <InputField label="Username" value={username} onChange={setUsername} placeholder="charithgamage" icon={User} />
+              <InputField label="Email Address" value={email} onChange={setEmail} placeholder="charith@gmail.com" icon={Mail} type="email" />
             </div>
 
             <div className="mt-6 flex justify-end">
@@ -417,29 +397,9 @@ export default function ProfilePage() {
             />
 
             <div className="mt-6 grid gap-5 md:grid-cols-2">
-              <InputField
-                label="Phone Number"
-                value={phone}
-                onChange={setPhone}
-                placeholder="+94 77 123 4567"
-                icon={Phone}
-              />
-
-              <InputField
-                label="Target Role"
-                value={targetRole}
-                onChange={setTargetRole}
-                placeholder="Software Engineer"
-                icon={Briefcase}
-              />
-
-              <InputField
-                label="Location"
-                value={location}
-                onChange={setLocation}
-                placeholder="Colombo, Sri Lanka"
-                icon={MapPin}
-              />
+              <InputField label="Phone Number" value={phone} onChange={setPhone} placeholder="+94 77 123 4567" icon={Phone} />
+              <InputField label="Target Role" value={targetRole} onChange={setTargetRole} placeholder="Software Engineer" icon={Briefcase} />
+              <InputField label="Location" value={location} onChange={setLocation} placeholder="Colombo, Sri Lanka" icon={MapPin} />
             </div>
 
             <label className="mt-5 block">
@@ -468,23 +428,8 @@ export default function ProfilePage() {
             />
 
             <div className="mt-6 grid gap-5 md:grid-cols-2">
-              <InputField
-                label="New Password"
-                value={password}
-                onChange={setPassword}
-                placeholder="Enter new password"
-                icon={Lock}
-                type="password"
-              />
-
-              <InputField
-                label="Confirm Password"
-                value={confirmPassword}
-                onChange={setConfirmPassword}
-                placeholder="Confirm new password"
-                icon={Lock}
-                type="password"
-              />
+              <InputField label="New Password" value={password} onChange={setPassword} placeholder="Enter new password" icon={Lock} type="password" />
+              <InputField label="Confirm Password" value={confirmPassword} onChange={setConfirmPassword} placeholder="Confirm new password" icon={Lock} type="password" />
             </div>
 
             <div className="mt-6 flex justify-end">
@@ -573,13 +518,7 @@ function SaveButton({ loading, text }: { loading: boolean; text: string }) {
   );
 }
 
-function AlertBox({
-  type,
-  message,
-}: {
-  type: "error" | "success";
-  message: string;
-}) {
+function AlertBox({ type, message }: { type: "error" | "success"; message: string }) {
   const isError = type === "error";
 
   return (
@@ -595,6 +534,7 @@ function AlertBox({
       ) : (
         <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
       )}
+
       {message}
     </div>
   );

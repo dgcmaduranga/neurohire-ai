@@ -52,6 +52,8 @@ type InterviewResponse = {
   is_answer_relevant?: boolean | null;
   final_report?: FinalReport;
   detail?: string;
+  question_number?: number;
+  total_questions?: number;
 };
 
 export default function InterviewPage() {
@@ -72,7 +74,7 @@ export default function InterviewPage() {
   const [loading, setLoading] = useState(false);
 
   const [questionNumber, setQuestionNumber] = useState(1);
-  const totalQuestions = 7;
+  const [totalQuestions, setTotalQuestions] = useState(10);
 
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [currentAnswer, setCurrentAnswer] = useState("");
@@ -214,6 +216,7 @@ export default function InterviewPage() {
     setCurrentAnswer("");
     setCurrentQuestion("");
     setQuestionNumber(1);
+    setTotalQuestions(10);
 
     await startCamera();
 
@@ -232,7 +235,7 @@ export default function InterviewPage() {
           industry_hint: industryHint.trim(),
           experience_level: experienceLevel,
           level: experienceLevel,
-          total_questions: totalQuestions,
+          total_questions: 10,
           instruction:
             "Start like a real interview. Welcome the candidate first, ask a simple opening question, then continue naturally.",
         }),
@@ -247,6 +250,10 @@ export default function InterviewPage() {
 
       if (data.interview_id) {
         setInterviewId(data.interview_id);
+      }
+
+      if (data.total_questions) {
+        setTotalQuestions(data.total_questions);
       }
 
       const firstQuestion =
@@ -316,6 +323,10 @@ export default function InterviewPage() {
       if (!response.ok) {
         console.error("Answer evaluation backend error:", data);
         throw new Error("Answer evaluation failed");
+      }
+
+      if (data.total_questions) {
+        setTotalQuestions(data.total_questions);
       }
 
       setCurrentAnswer("");
@@ -411,6 +422,7 @@ export default function InterviewPage() {
     setCurrentQuestion("");
     setCurrentAnswer("");
     setQuestionNumber(1);
+    setTotalQuestions(10);
     setNotice("");
   }
 

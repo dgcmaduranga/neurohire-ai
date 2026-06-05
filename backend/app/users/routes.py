@@ -13,15 +13,31 @@ router = APIRouter(prefix="/users", tags=["Users"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
+def serialize_datetime(value):
+    if not value:
+        return None
+
+    return str(value)
+
+
 def serialize_user(user: dict):
+    if not user:
+        return None
+
     return {
         "id": str(user.get("_id")),
         "_id": str(user.get("_id")),
         "name": user.get("name", ""),
         "username": user.get("username", ""),
         "email": user.get("email", ""),
-        "created_at": user.get("created_at"),
-        "updated_at": user.get("updated_at"),
+        "phone": user.get("phone", ""),
+        "target_role": user.get("target_role", ""),
+        "location": user.get("location", ""),
+        "bio": user.get("bio", ""),
+        "auth_provider": user.get("auth_provider", ""),
+        "profile_picture": user.get("profile_picture", ""),
+        "created_at": serialize_datetime(user.get("created_at")),
+        "updated_at": serialize_datetime(user.get("updated_at")),
     }
 
 
@@ -29,9 +45,27 @@ def hash_password(password: str):
     return pwd_context.hash(password)
 
 
+def clean_value(value):
+    if value is None:
+        return None
+
+    value = str(value).strip()
+
+    if value == "":
+        return None
+
+    return value
+
+
 @router.get("/me")
 async def get_me(current_user=Depends(get_current_user)):
     user_id = current_user.get("_id") or current_user.get("id")
+
+    if not user_id or not ObjectId.is_valid(str(user_id)):
+      raise HTTPException(
+          status_code=status.HTTP_401_UNAUTHORIZED,
+          detail="Invalid authenticated user",
+      )
 
     user = await db.users.find_one({"_id": ObjectId(user_id)})
 
@@ -54,7 +88,7 @@ async def update_me(
 ):
     user_id = current_user.get("_id") or current_user.get("id")
 
-    if not user_id:
+    if not user_id or not ObjectId.is_valid(str(user_id)):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authenticated user",
@@ -64,12 +98,12 @@ async def update_me(
 
     update_data = {}
 
-    if data.get("name") is not None:
-        update_data["name"] = data["name"].strip()
+    name = clean_value(data.get("name"))
+    if name:
+        update_data["name"] = name
 
-    if data.get("username") is not None:
-        username = data["username"].strip()
-
+    username = clean_value(data.get("username"))
+    if username:
         existing_username = await db.users.find_one(
             {
                 "username": username,
@@ -85,8 +119,9 @@ async def update_me(
 
         update_data["username"] = username
 
-    if data.get("email") is not None:
-        email = data["email"].lower().strip()
+    email = clean_value(data.get("email"))
+    if email:
+        email = email.lower()
 
         existing_email = await db.users.find_one(
             {
@@ -103,9 +138,24 @@ async def update_me(
 
         update_data["email"] = email
 
-    if data.get("password") is not None:
-        password = data["password"].strip()
+    phone = clean_value(data.get("phone"))
+    if phone:
+        update_data["phone"] = phone
 
+    target_role = clean_value(data.get("target_role"))
+    if target_role:
+        update_data["target_role"] = target_role
+
+    location = clean_value(data.get("location"))
+    if location:
+        update_data["location"] = location
+
+    bio = clean_value(data.get("bio"))
+    if bio:
+        update_data["bio"] = bio
+
+    password = clean_value(data.get("password"))
+    if password:
         if len(password) < 6:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,

@@ -12,6 +12,8 @@ from app.database import interviews_collection
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
+DEFAULT_TOTAL_QUESTIONS = 10
+
 
 def get_openai_client():
     if not settings.OPENAI_API_KEY:
@@ -26,6 +28,7 @@ def safe_json_loads(text: str) -> Dict[str, Any]:
         pass
 
     match = re.search(r"\{.*\}", text, re.DOTALL)
+
     if not match:
         raise HTTPException(status_code=500, detail="AI response was not valid JSON.")
 
@@ -42,6 +45,18 @@ def normalize_score(value: Any, default: int = 50) -> int:
         score = default
 
     return max(0, min(score, 100))
+
+
+def normalize_total_questions(value: Any) -> int:
+    try:
+        total = int(value)
+    except Exception:
+        total = DEFAULT_TOTAL_QUESTIONS
+
+    if total < 1:
+        return DEFAULT_TOTAL_QUESTIONS
+
+    return total
 
 
 def is_repeat_request(answer: str) -> bool:
@@ -72,7 +87,7 @@ def is_repeat_request(answer: str) -> bool:
 def clean_messages_for_openai(messages: List[Dict[str, Any]]) -> List[Dict[str, str]]:
     cleaned = []
 
-    for message in messages[-18:]:
+    for message in messages[-24:]:
         role = message.get("role", "")
         content = message.get("content", "")
 
@@ -183,7 +198,6 @@ Candidate spoken answer:
 
 Evaluation rules:
 - If answer is only "hi", "hello", "okay", "yes", "no", "fine", "good", or similar, it is not a proper answer.
-- If the candidate says "sorry what", "repeat", "pardon", or asks to repeat, do not evaluate; however repeat logic is normally handled before this prompt.
 - If the answer does not answer the question, mark it low.
 - If the answer is too short, mark it low.
 - If the answer is relevant but incomplete, give a fair score and explain missing points.
@@ -238,13 +252,14 @@ async def generate_interview_question(
     job_role: Optional[str] = None,
     industry_hint: str = "",
     experience_level: str = "Entry Level",
-    total_questions: int = 7,
+    total_questions: int = DEFAULT_TOTAL_QUESTIONS,
     instruction: str = "",
     role: Optional[str] = None,
     skills: Optional[List[str]] = None,
 ):
     openai_client = get_openai_client()
     selected_role = job_role or role
+    total_questions = normalize_total_questions(total_questions)
 
     if not selected_role or not selected_role.strip():
         raise HTTPException(status_code=400, detail="Job role is required.")
@@ -310,6 +325,8 @@ async def generate_interview_question(
         "job_role": selected_role,
         "industry_hint": industry_hint,
         "experience_level": experience_level,
+        "total_questions": total_questions,
+        "question_number": 1,
         "question": question,
     }
 
@@ -321,7 +338,7 @@ async def evaluate_interview_answer(
     industry_hint: str = "",
     experience_level: str = "Entry Level",
     question_number: int = 1,
-    total_questions: int = 7,
+    total_questions: int = DEFAULT_TOTAL_QUESTIONS,
     question: str = "",
     conversation: Optional[List[Dict[str, Any]]] = None,
     instruction: str = "",
@@ -336,6 +353,9 @@ async def evaluate_interview_answer(
     selected_role = job_role or "General Role"
     conversation = conversation or []
     interview = None
+    stored_messages = []
+
+    total_questions = normalize_total_questions(total_questions)
 
     if interview_id:
         try:
@@ -349,15 +369,16 @@ async def evaluate_interview_answer(
         selected_role = interview.get("job_role") or selected_role
         industry_hint = interview.get("industry_hint") or industry_hint
         experience_level = interview.get("experience_level") or experience_level
-        total_questions = interview.get("total_questions") or total_questions
+        total_questions = normalize_total_questions(
+            interview.get("total_questions") or total_questions
+        )
 
         stored_messages = interview.get("messages", [])
+
         if not question:
             ai_messages = [m for m in stored_messages if m.get("role") == "ai"]
             if ai_messages:
                 question = ai_messages[-1].get("content", "")
-    else:
-        stored_messages = []
 
     if is_repeat_request(answer):
         repeated_text = f"No problem, let me repeat the question. {question}"
@@ -393,6 +414,8 @@ async def evaluate_interview_answer(
             "weaknesses": [],
             "improved_answer": "",
             "next_question": repeated_text,
+            "question_number": question_number,
+            "total_questions": total_questions,
         }
 
     is_final = question_number >= total_questions
@@ -438,18 +461,9 @@ async def evaluate_interview_answer(
     if data.get("final_report"):
         report = data["final_report"]
         report["overall_score"] = normalize_score(report.get("overall_score"), score)
-        report["communication_score"] = normalize_score(
-            report.get("communication_score"),
-            score,
-        )
-        report["role_knowledge_score"] = normalize_score(
-            report.get("role_knowledge_score"),
-            score,
-        )
-        report["confidence_score"] = normalize_score(
-            report.get("confidence_score"),
-            score,
-        )
+        report["communication_score"] = normalize_score(report.get("communication_score"), score)
+        report["role_knowledge_score"] = normalize_score(report.get("role_knowledge_score"), score)
+        report["confidence_score"] = normalize_score(report.get("confidence_score"), score)
 
     if not data.get("next_question") and not data.get("final_report"):
         data["next_question"] = (
@@ -475,7 +489,7 @@ async def evaluate_interview_answer(
         },
     ]
 
-    if data.get("next_question"):
+    if data.get("next_question") and not data.get("final_report"):
         message_entries.append(
             {
                 "role": "ai",
@@ -519,6 +533,9 @@ async def evaluate_interview_answer(
                 "updated_at": datetime.utcnow(),
             }
         )
+
+    data["question_number"] = question_number
+    data["total_questions"] = total_questions
 
     return data
 

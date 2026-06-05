@@ -19,10 +19,10 @@ def serialize_user(user: dict):
     user.pop("password", None)
     user.pop("hashed_password", None)
 
-    if "created_at" in user and user["created_at"]:
+    if user.get("created_at"):
         user["created_at"] = str(user["created_at"])
 
-    if "updated_at" in user and user["updated_at"]:
+    if user.get("updated_at"):
         user["updated_at"] = str(user["updated_at"])
 
     return user
@@ -32,8 +32,20 @@ def hash_password(password: str):
     return pwd_context.hash(password)
 
 
+def clean_string(value):
+    if value is None:
+        return None
+
+    value = str(value).strip()
+
+    if value == "":
+        return None
+
+    return value
+
+
 async def get_user_by_id(user_id: str):
-    if not ObjectId.is_valid(user_id):
+    if not ObjectId.is_valid(str(user_id)):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid user id",
@@ -51,15 +63,13 @@ async def get_user_by_id(user_id: str):
 
 
 async def update_user_profile(user_id: str, data: dict):
-    if not ObjectId.is_valid(user_id):
+    if not ObjectId.is_valid(str(user_id)):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid user id",
         )
 
-    clean_data = {k: v for k, v in data.items() if v is not None}
-
-    if not clean_data:
+    if not data:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No data provided",
@@ -67,11 +77,17 @@ async def update_user_profile(user_id: str, data: dict):
 
     update_data = {}
 
-    if "name" in clean_data:
-        update_data["name"] = clean_data["name"].strip()
+    name = clean_string(data.get("name"))
+    if name:
+        update_data["name"] = name
 
-    if "username" in clean_data:
-        username = clean_data["username"].strip()
+    username = clean_string(data.get("username"))
+    if username:
+        if len(username) < 3:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Username must be at least 3 characters",
+            )
 
         existing_username = await users_collection.find_one(
             {
@@ -88,8 +104,9 @@ async def update_user_profile(user_id: str, data: dict):
 
         update_data["username"] = username
 
-    if "email" in clean_data:
-        email = clean_data["email"].lower().strip()
+    email = clean_string(data.get("email"))
+    if email:
+        email = email.lower()
 
         existing_email = await users_collection.find_one(
             {
@@ -106,21 +123,24 @@ async def update_user_profile(user_id: str, data: dict):
 
         update_data["email"] = email
 
-    if "phone" in clean_data:
-        update_data["phone"] = clean_data["phone"].strip()
+    phone = clean_string(data.get("phone"))
+    if phone:
+        update_data["phone"] = phone
 
-    if "target_role" in clean_data:
-        update_data["target_role"] = clean_data["target_role"].strip()
+    target_role = clean_string(data.get("target_role"))
+    if target_role:
+        update_data["target_role"] = target_role
 
-    if "location" in clean_data:
-        update_data["location"] = clean_data["location"].strip()
+    location = clean_string(data.get("location"))
+    if location:
+        update_data["location"] = location
 
-    if "bio" in clean_data:
-        update_data["bio"] = clean_data["bio"].strip()
+    bio = clean_string(data.get("bio"))
+    if bio:
+        update_data["bio"] = bio
 
-    if "password" in clean_data:
-        password = clean_data["password"].strip()
-
+    password = clean_string(data.get("password"))
+    if password:
         if len(password) < 6:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -132,7 +152,7 @@ async def update_user_profile(user_id: str, data: dict):
     if not update_data:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No valid data provided",
+            detail="No valid fields provided for update",
         )
 
     update_data["updated_at"] = datetime.now(timezone.utc)

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class UserUpdateRequest(BaseModel):
@@ -43,3 +43,24 @@ class UserUpdateRequest(BaseModel):
         min_length=6,
         max_length=100,
     )
+
+    @field_validator(
+        "name",
+        "username",
+        "email",
+        "phone",
+        "target_role",
+        "location",
+        "bio",
+        "password",
+        mode="before",
+    )
+    @classmethod
+    def empty_string_to_none(cls, value):
+        if value is None:
+            return None
+
+        if isinstance(value, str) and value.strip() == "":
+            return None
+
+        return value
