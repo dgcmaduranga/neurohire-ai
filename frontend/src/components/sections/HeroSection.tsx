@@ -6,7 +6,6 @@ import gsap from "gsap";
 import {
   ArrowRight,
   Bot,
-  Calendar,
   CheckCircle2,
   MessageSquareText,
   ShieldCheck,
@@ -90,14 +89,6 @@ export default function HeroSection() {
             >
               Get Started Free
               <ArrowRight className="ml-2 h-5 w-5 transition group-hover:translate-x-1" />
-            </Link>
-
-            <Link
-              href="/login"
-              className="inline-flex items-center justify-center rounded-2xl border border-blue-100 bg-white/75 px-6 py-4 text-sm font-black text-slate-950 shadow-lg shadow-blue-100/70 backdrop-blur-2xl transition hover:-translate-y-1 hover:bg-white sm:px-7"
-            >
-              <Calendar className="mr-2 h-5 w-5 text-blue-600" />
-              Practice Interview
             </Link>
           </div>
 
