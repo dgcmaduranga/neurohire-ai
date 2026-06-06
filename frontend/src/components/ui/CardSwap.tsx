@@ -10,22 +10,19 @@ import React, {
   useRef,
 } from "react";
 import gsap from "gsap";
-import "./CardSwap.css";
 
 type CardProps = React.HTMLAttributes<HTMLDivElement> & {
   customClass?: string;
 };
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(
-  ({ customClass, className = "", ...rest }, ref) => {
-    return (
-      <div
-        ref={ref}
-        {...rest}
-        className={`card ${customClass ?? ""} ${className}`.trim()}
-      />
-    );
-  }
+  ({ customClass, className = "", ...rest }, ref) => (
+    <div
+      ref={ref}
+      {...rest}
+      className={`card ${customClass ?? ""} ${className}`.trim()}
+    />
+  )
 );
 
 Card.displayName = "Card";
@@ -113,7 +110,7 @@ export default function CardSwap({
       if (order.current.length < 2) return;
 
       const [front, ...rest] = order.current;
-      const frontEl = refs[front].current;
+      const frontEl = refs[front]?.current;
       if (!frontEl) return;
 
       const tl = gsap.timeline();
@@ -127,7 +124,7 @@ export default function CardSwap({
       });
 
       rest.forEach((idx, i) => {
-        const el = refs[idx].current;
+        const el = refs[idx]?.current;
         if (!el) return;
 
         const slot = makeSlot(i, cardDistance, verticalDistance, refs.length);
@@ -170,55 +167,65 @@ export default function CardSwap({
     swap();
     intervalRef.current = window.setInterval(swap, delay);
 
-    const node = containerRef.current;
-
-    if (pauseOnHover && node) {
-      const pause = () => {
-        tlRef.current?.pause();
-        if (intervalRef.current) clearInterval(intervalRef.current);
-      };
-
-      const resume = () => {
-        tlRef.current?.play();
-        intervalRef.current = window.setInterval(swap, delay);
-      };
-
-      node.addEventListener("mouseenter", pause);
-      node.addEventListener("mouseleave", resume);
-
-      return () => {
-        node.removeEventListener("mouseenter", pause);
-        node.removeEventListener("mouseleave", resume);
-        if (intervalRef.current) clearInterval(intervalRef.current);
-      };
-    }
-
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [cardDistance, verticalDistance, delay, pauseOnHover, skewAmount, easing, refs]);
+  }, [cardDistance, verticalDistance, delay, skewAmount, easing, refs]);
 
   const rendered = childArr.map((child, index) => {
     if (!isValidElement(child)) return child;
 
-    return cloneElement(child as React.ReactElement<CardProps>, {
+    const element = child as React.ReactElement<CardProps>;
+
+    return cloneElement(element, {
       key: index,
-      ref: refs[index],
       style: {
         width,
         height,
-        ...((child as React.ReactElement<CardProps>).props.style ?? {}),
+        ...(element.props.style ?? {}),
       },
     });
   });
 
   return (
-    <div
-      ref={containerRef}
-      className="card-swap-container"
-      style={{ width, height }}
-    >
-      {rendered}
-    </div>
+    <>
+      <style jsx global>{`
+        .card-swap-container {
+          position: absolute;
+          top: 52%;
+          left: 50%;
+          width: min(520px, 100%) !important;
+          height: 400px;
+          transform: translate(-50%, -50%);
+          transform-origin: center;
+          perspective: 1200px;
+          overflow: visible;
+        }
+
+        .card {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          border-radius: 32px;
+          border: 1px solid rgba(191, 219, 254, 0.9);
+          background: rgba(255, 255, 255, 0.92);
+          transform-style: preserve-3d;
+          will-change: transform;
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+          box-shadow: 0 35px 100px rgba(37, 99, 235, 0.2);
+          backdrop-filter: blur(24px);
+          overflow: hidden;
+        }
+      `}</style>
+
+      <div
+        ref={containerRef}
+        className="card-swap-container"
+        style={{ width, height }}
+      >
+        {rendered}
+      </div>
+    </>
   );
 }
