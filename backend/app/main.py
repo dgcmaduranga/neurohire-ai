@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.config import settings
 from app.database import ping_database
 
 from app.auth.routes import router as auth_router
@@ -18,12 +19,18 @@ app = FastAPI(
     description="AI Career Preparation, Resume Optimization, Job Discovery and Interview Practice Backend",
 )
 
+allowed_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://neurohire-ai-alpha.vercel.app",
+]
+
+if settings.FRONTEND_URL:
+    allowed_origins.append(settings.FRONTEND_URL.rstrip("/"))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=list(set(allowed_origins)),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
