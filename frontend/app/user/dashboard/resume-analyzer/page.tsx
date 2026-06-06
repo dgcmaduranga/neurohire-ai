@@ -170,15 +170,17 @@ export default function ResumeAnalyzerPage() {
     return localStorage.getItem("token");
   }
 
-  function getErrorMessage(data: ImproveResponse | { detail?: unknown }) {
-    if (typeof data?.detail === "string") return data.detail;
-    if (typeof data?.message === "string") return data.message;
-    if (data?.detail && typeof data.detail === "object") {
-      return JSON.stringify(data.detail);
-    }
-    return "Something went wrong.";
+ function getErrorMessage(data: ImproveResponse | { detail?: unknown; message?: unknown }) {
+  if (typeof data?.detail === "string") return data.detail;
+
+  if (typeof data?.message === "string") return data.message;
+
+  if (data?.detail && typeof data.detail === "object") {
+    return JSON.stringify(data.detail);
   }
 
+  return "Something went wrong.";
+}
   async function handleAnalyze(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
