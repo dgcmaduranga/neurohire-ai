@@ -1,4 +1,7 @@
 from pydantic_settings import BaseSettings
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Settings(BaseSettings):
@@ -17,6 +20,9 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
 
+    BACKEND_URL: str = "http://127.0.0.1:8000"
+    FRONTEND_URL: str = "http://localhost:3000"
+
     ADZUNA_APP_ID: str = ""
     ADZUNA_APP_KEY: str = ""
 
@@ -34,6 +40,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-from dotenv import load_dotenv
-load_dotenv()

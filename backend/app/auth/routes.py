@@ -35,7 +35,7 @@ async def google_login(request: GoogleLoginRequest):
 
 @router.get("/google/login")
 async def google_login_redirect():
-    redirect_uri = "http://127.0.0.1:8000/auth/google/callback"
+    redirect_uri = f"{settings.BACKEND_URL}/auth/google/callback"
 
     params = {
         "client_id": settings.GOOGLE_CLIENT_ID,
@@ -46,15 +46,34 @@ async def google_login_redirect():
         "prompt": "select_account",
     }
 
-    google_auth_url = "https://accounts.google.com/o/oauth2/v2/auth?" + urlencode(params)
+    google_auth_url = (
+        "https://accounts.google.com/o/oauth2/v2/auth?"
+        + urlencode(params)
+    )
+
     return RedirectResponse(google_auth_url)
 
 
 @router.get("/google/callback")
-async def google_callback(code: str = Query(...)):
-    redirect_uri = "http://127.0.0.1:8000/auth/google/callback"
+async def google_callback(
+    code: str | None = Query(default=None),
+    error: str | None = Query(default=None),
+):
+    if error:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Google OAuth error: {error}",
+        )
 
-    async with httpx.AsyncClient() as client:
+    if not code:
+        raise HTTPException(
+            status_code=400,
+            detail="Google authorization code not found",
+        )
+
+    redirect_uri = f"{settings.BACKEND_URL}/auth/google/callback"
+
+    async with httpx.AsyncClient(timeout=30) as client:
         token_response = await client.post(
             "https://oauth2.googleapis.com/token",
             data={
@@ -66,15 +85,24 @@ async def google_callback(code: str = Query(...)):
             },
         )
 
-        token_data = token_response.json()
+    token_data = token_response.json()
 
-        if "id_token" not in token_data:
-            raise HTTPException(status_code=400, detail=token_data)
+    if token_response.status_code != 200:
+        raise HTTPException(
+            status_code=400,
+            detail=token_data,
+        )
 
-        login_data = await google_login_user(token=token_data["id_token"])
+    if "id_token" not in token_data:
+        raise HTTPException(
+            status_code=400,
+            detail=token_data,
+        )
+
+    login_data = await google_login_user(token=token_data["id_token"])
 
     frontend_url = (
-        "http://localhost:3000/user/dashboard"
+        f"{settings.FRONTEND_URL}/user/dashboard"
         f"?token={login_data['token']}"
     )
 
