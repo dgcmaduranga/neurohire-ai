@@ -725,260 +725,276 @@ export default function ResumeAnalyzerPage() {
         </section>
       )}
 
-      {showImproveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-3 backdrop-blur-sm sm:p-4">
-          <div className="max-h-[94vh] w-full max-w-7xl overflow-hidden rounded-[2rem] bg-white shadow-2xl">
-            <div className="flex flex-col gap-4 border-b border-blue-100 p-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-black text-purple-600">
-                  AI Improved Resume
-                </p>
-                <h2 className="text-2xl font-black text-slate-950">
-                  Premium ATS-Friendly Resume Preview
-                </h2>
-              </div>
-
-              <button
-                onClick={() => setShowImproveModal(false)}
-                className="w-fit rounded-2xl bg-red-50 p-3 text-red-600 hover:bg-red-100"
-              >
-                <X className="h-5 w-5" />
-              </button>
+{showImproveModal && (
+  <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm">
+    <div className="flex h-dvh w-full items-end justify-center sm:items-center sm:p-4">
+      <div className="flex h-dvh w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-[94vh] sm:max-w-7xl sm:rounded-[2rem]">
+        <div className="shrink-0 border-b border-blue-100 bg-white px-4 py-4 sm:px-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-black text-purple-600 sm:text-sm">
+                AI Improved Resume
+              </p>
+              <h2 className="mt-1 text-xl font-black leading-tight text-slate-950 sm:text-2xl">
+                Premium ATS-Friendly Resume Preview
+              </h2>
             </div>
 
-            <div className="max-h-[72vh] overflow-y-auto bg-slate-100 p-4 sm:p-6">
-              <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
-                <div className="space-y-4">
-                  <div className="rounded-[1.5rem] border border-blue-100 bg-white p-5 shadow-sm">
-                    <h3 className="text-lg font-black text-slate-950">
-                      Original vs Improved
-                    </h3>
+            <button
+              onClick={() => setShowImproveModal(false)}
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-red-50 text-red-600 hover:bg-red-100"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
 
-                    <div className="mt-4 space-y-3">
-                      {comparisonItems.map((item) => (
-                        <div
-                          key={item.label}
-                          className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
-                        >
-                          <p className="text-xs font-black uppercase tracking-wide text-slate-400">
-                            {item.label}
+        <div className="min-h-0 flex-1 overflow-y-auto bg-slate-100 p-3 sm:p-6">
+          <div className="grid gap-4 xl:grid-cols-[360px_1fr]">
+            <div className="order-2 space-y-4 xl:order-1">
+              <div className="rounded-[1.5rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
+                <h3 className="text-lg font-black text-slate-950">
+                  Original vs Improved
+                </h3>
+
+                <div className="mt-4 space-y-3">
+                  {comparisonItems.map((item) => (
+                    <div
+                      key={item.label}
+                      className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
+                    >
+                      <p className="text-xs font-black uppercase tracking-wide text-slate-400">
+                        {item.label}
+                      </p>
+
+                      <div className="mt-3 grid gap-3">
+                        <div>
+                          <p className="text-xs font-black text-red-500">
+                            Original
                           </p>
-                          <div className="mt-3 grid gap-3">
-                            <div>
-                              <p className="text-xs font-black text-red-500">
-                                Original
-                              </p>
-                              <p className="mt-1 text-sm font-semibold leading-6 text-slate-600">
-                                {item.original}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs font-black text-emerald-600">
-                                Improved
-                              </p>
-                              <p className="mt-1 text-sm font-semibold leading-6 text-slate-700">
-                                {item.improved}
-                              </p>
-                            </div>
-                          </div>
+                          <p className="mt-1 break-words text-sm font-semibold leading-6 text-slate-600">
+                            {item.original}
+                          </p>
                         </div>
+
+                        <div>
+                          <p className="text-xs font-black text-emerald-600">
+                            Improved
+                          </p>
+                          <p className="mt-1 break-words text-sm font-semibold leading-6 text-slate-700">
+                            {item.improved}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-[1.5rem] border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
+                <h3 className="text-lg font-black text-slate-950">
+                  Original Resume
+                </h3>
+                <p className="mt-4 max-h-72 overflow-y-auto whitespace-pre-wrap break-words rounded-2xl bg-slate-50 p-4 text-xs leading-6 text-slate-600 sm:max-h-96">
+                  {result?.resume_text}
+                </p>
+              </div>
+            </div>
+
+            <div className="order-1 mx-auto w-full xl:order-2">
+              <div className="mx-auto w-full max-w-[850px] rounded-[1.25rem] bg-white p-5 shadow-xl ring-1 ring-slate-200 sm:p-10">
+                <div className="border-b border-slate-200 pb-6">
+                  <h1 className="break-words text-2xl font-black uppercase tracking-tight text-slate-950 sm:text-4xl">
+                    {enhancedResumeJson?.full_name || "Improved Resume"}
+                  </h1>
+
+                  <p className="mt-2 break-words text-base font-bold text-blue-600 sm:text-lg">
+                    {enhancedResumeJson?.headline ||
+                      report?.target_role ||
+                      "ATS Optimized Candidate"}
+                  </p>
+
+                  {contactItems.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {contactItems.map((item) => (
+                        <span
+                          key={item}
+                          className="max-w-full break-all rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600"
+                        >
+                          {item}
+                        </span>
                       ))}
                     </div>
-                  </div>
+                  )}
 
-                  <div className="rounded-[1.5rem] border border-blue-100 bg-white p-5 shadow-sm">
-                    <h3 className="text-lg font-black text-slate-950">
-                      Original Resume
-                    </h3>
-                    <p className="mt-4 max-h-96 overflow-y-auto whitespace-pre-wrap rounded-2xl bg-slate-50 p-4 text-xs leading-6 text-slate-600">
-                      {result?.resume_text}
+                  <p className="mt-5 break-words text-sm leading-7 text-slate-600">
+                    {enhancedResumeJson?.summary ||
+                      improvedResume.split("\n").slice(0, 5).join(" ")}
+                  </p>
+                </div>
+
+                {enhancedResumeJson?.skills &&
+                  enhancedResumeJson.skills.length > 0 && (
+                    <section className="mt-7">
+                      <h2 className="text-xs font-black uppercase tracking-[0.22em] text-slate-400 sm:text-sm">
+                        Skills
+                      </h2>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {enhancedResumeJson.skills.map((skill) => (
+                          <span
+                            key={skill}
+                            className="break-words rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                {enhancedResumeJson?.experience &&
+                  enhancedResumeJson.experience.length > 0 && (
+                    <section className="mt-8">
+                      <h2 className="text-xs font-black uppercase tracking-[0.22em] text-slate-400 sm:text-sm">
+                        Experience
+                      </h2>
+
+                      <div className="mt-4 space-y-6">
+                        {enhancedResumeJson.experience.map((exp, index) => (
+                          <div key={`${exp.company}-${index}`}>
+                            <div className="flex flex-col justify-between gap-1 sm:flex-row">
+                              <h3 className="break-words text-base font-black text-slate-950 sm:text-lg">
+                                {exp.title || "Experience"}
+                              </h3>
+                              <p className="text-sm font-bold text-slate-500">
+                                {exp.duration}
+                              </p>
+                            </div>
+
+                            <p className="break-words text-sm font-bold text-blue-600">
+                              {exp.company}
+                            </p>
+
+                            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-7 text-slate-700">
+                              {exp.bullets?.map((bullet) => (
+                                <li key={bullet} className="break-words">
+                                  {bullet}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                {enhancedResumeJson?.projects &&
+                  enhancedResumeJson.projects.length > 0 && (
+                    <section className="mt-8">
+                      <h2 className="text-xs font-black uppercase tracking-[0.22em] text-slate-400 sm:text-sm">
+                        Projects
+                      </h2>
+
+                      <div className="mt-4 grid gap-4 md:grid-cols-2">
+                        {enhancedResumeJson.projects.map((project, index) => (
+                          <div
+                            key={`${project.name}-${index}`}
+                            className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
+                          >
+                            <h3 className="break-words font-black text-slate-950">
+                              {project.name}
+                            </h3>
+                            <p className="mt-2 break-words text-sm leading-6 text-slate-600">
+                              {project.description}
+                            </p>
+                            {project.technologies && (
+                              <p className="mt-2 break-words text-xs font-black text-blue-600">
+                                {project.technologies.join(" • ")}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                {enhancedResumeJson?.education &&
+                  enhancedResumeJson.education.length > 0 && (
+                    <section className="mt-8">
+                      <h2 className="text-xs font-black uppercase tracking-[0.22em] text-slate-400 sm:text-sm">
+                        Education
+                      </h2>
+
+                      <div className="mt-4 space-y-3">
+                        {enhancedResumeJson.education.map((edu, index) => (
+                          <div
+                            key={`${edu.degree}-${index}`}
+                            className="rounded-2xl border border-slate-100 p-4"
+                          >
+                            <h3 className="break-words font-black text-slate-950">
+                              {edu.degree}
+                            </h3>
+                            <p className="break-words text-sm font-semibold text-slate-600">
+                              {edu.institution}{" "}
+                              {edu.duration && `• ${edu.duration}`}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                {!enhancedResumeJson && (
+                  <section className="mt-8">
+                    <h2 className="text-xs font-black uppercase tracking-[0.22em] text-slate-400 sm:text-sm">
+                      Improved Resume
+                    </h2>
+                    <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-7 text-slate-700">
+                      {improvedResume}
                     </p>
-                  </div>
-                </div>
-
-                <div className="mx-auto w-full max-w-[850px]">
-                  <div className="min-h-[1120px] rounded-[1.25rem] bg-white p-6 shadow-2xl ring-1 ring-slate-200 sm:p-10">
-                    <div className="border-b border-slate-200 pb-6">
-                      <h1 className="text-3xl font-black uppercase tracking-tight text-slate-950 sm:text-4xl">
-                        {enhancedResumeJson?.full_name || "Improved Resume"}
-                      </h1>
-
-                      <p className="mt-2 text-lg font-bold text-blue-600">
-                        {enhancedResumeJson?.headline ||
-                          report?.target_role ||
-                          "ATS Optimized Candidate"}
-                      </p>
-
-                      {contactItems.length > 0 && (
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          {contactItems.map((item) => (
-                            <span
-                              key={item}
-                              className="break-all rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600"
-                            >
-                              {item}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      <p className="mt-5 max-w-4xl text-sm leading-7 text-slate-600">
-                        {enhancedResumeJson?.summary ||
-                          improvedResume.split("\n").slice(0, 5).join(" ")}
-                      </p>
-                    </div>
-
-                    {enhancedResumeJson?.skills &&
-                      enhancedResumeJson.skills.length > 0 && (
-                        <section className="mt-7">
-                          <h2 className="text-sm font-black uppercase tracking-[0.25em] text-slate-400">
-                            Skills
-                          </h2>
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {enhancedResumeJson.skills.map((skill) => (
-                              <span
-                                key={skill}
-                                className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700"
-                              >
-                                {skill}
-                              </span>
-                            ))}
-                          </div>
-                        </section>
-                      )}
-
-                    {enhancedResumeJson?.experience &&
-                      enhancedResumeJson.experience.length > 0 && (
-                        <section className="mt-8">
-                          <h2 className="text-sm font-black uppercase tracking-[0.25em] text-slate-400">
-                            Experience
-                          </h2>
-                          <div className="mt-4 space-y-6">
-                            {enhancedResumeJson.experience.map((exp, index) => (
-                              <div key={`${exp.company}-${index}`}>
-                                <div className="flex flex-col justify-between gap-1 sm:flex-row">
-                                  <h3 className="text-lg font-black text-slate-950">
-                                    {exp.title || "Experience"}
-                                  </h3>
-                                  <p className="text-sm font-bold text-slate-500">
-                                    {exp.duration}
-                                  </p>
-                                </div>
-                                <p className="text-sm font-bold text-blue-600">
-                                  {exp.company}
-                                </p>
-                                <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-7 text-slate-700">
-                                  {exp.bullets?.map((bullet) => (
-                                    <li key={bullet}>{bullet}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ))}
-                          </div>
-                        </section>
-                      )}
-
-                    {enhancedResumeJson?.projects &&
-                      enhancedResumeJson.projects.length > 0 && (
-                        <section className="mt-8">
-                          <h2 className="text-sm font-black uppercase tracking-[0.25em] text-slate-400">
-                            Projects
-                          </h2>
-                          <div className="mt-4 grid gap-4 md:grid-cols-2">
-                            {enhancedResumeJson.projects.map((project, index) => (
-                              <div
-                                key={`${project.name}-${index}`}
-                                className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
-                              >
-                                <h3 className="font-black text-slate-950">
-                                  {project.name}
-                                </h3>
-                                <p className="mt-2 text-sm leading-6 text-slate-600">
-                                  {project.description}
-                                </p>
-                                {project.technologies && (
-                                  <p className="mt-2 text-xs font-black text-blue-600">
-                                    {project.technologies.join(" • ")}
-                                  </p>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </section>
-                      )}
-
-                    {enhancedResumeJson?.education &&
-                      enhancedResumeJson.education.length > 0 && (
-                        <section className="mt-8">
-                          <h2 className="text-sm font-black uppercase tracking-[0.25em] text-slate-400">
-                            Education
-                          </h2>
-                          <div className="mt-4 space-y-3">
-                            {enhancedResumeJson.education.map((edu, index) => (
-                              <div
-                                key={`${edu.degree}-${index}`}
-                                className="rounded-2xl border border-slate-100 p-4"
-                              >
-                                <h3 className="font-black text-slate-950">
-                                  {edu.degree}
-                                </h3>
-                                <p className="text-sm font-semibold text-slate-600">
-                                  {edu.institution} {edu.duration && `• ${edu.duration}`}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        </section>
-                      )}
-
-                    {!enhancedResumeJson && (
-                      <section className="mt-8">
-                        <h2 className="text-sm font-black uppercase tracking-[0.25em] text-slate-400">
-                          Improved Resume
-                        </h2>
-                        <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-700">
-                          {improvedResume}
-                        </p>
-                      </section>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-3 border-t border-blue-100 p-5 sm:flex-row sm:justify-end">
-              <button
-                onClick={copyImprovedResume}
-                className="inline-flex items-center justify-center rounded-2xl bg-slate-100 px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-200"
-              >
-                <Copy className="mr-2 h-5 w-5" />
-                {copied ? "Copied!" : "Copy Improved Resume"}
-              </button>
-
-              <button
-                onClick={downloadImprovedTxt}
-                className="inline-flex items-center justify-center rounded-2xl bg-purple-100 px-5 py-3 text-sm font-black text-purple-700 hover:bg-purple-200"
-              >
-                <Download className="mr-2 h-5 w-5" />
-                Download TXT
-              </button>
-
-              <button
-                onClick={handleDownloadPdf}
-                disabled={pdfLoading}
-                className="inline-flex items-center justify-center rounded-2xl bg-purple-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-purple-500/25 hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {pdfLoading ? (
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                ) : (
-                  <Download className="mr-2 h-5 w-5" />
+                  </section>
                 )}
-                Download PDF
-              </button>
+              </div>
             </div>
           </div>
         </div>
-      )}
+
+        <div className="shrink-0 border-t border-blue-100 bg-white p-3 sm:p-5">
+          <div className="grid grid-cols-1 gap-3 sm:flex sm:justify-end">
+            <button
+              onClick={copyImprovedResume}
+              className="inline-flex w-full items-center justify-center rounded-2xl bg-slate-100 px-4 py-3 text-sm font-black text-slate-700 hover:bg-slate-200 sm:w-auto sm:px-5"
+            >
+              <Copy className="mr-2 h-5 w-5" />
+              {copied ? "Copied!" : "Copy Improved Resume"}
+            </button>
+
+            <button
+              onClick={downloadImprovedTxt}
+              className="inline-flex w-full items-center justify-center rounded-2xl bg-purple-100 px-4 py-3 text-sm font-black text-purple-700 hover:bg-purple-200 sm:w-auto sm:px-5"
+            >
+              <Download className="mr-2 h-5 w-5" />
+              Download TXT
+            </button>
+
+            <button
+              onClick={handleDownloadPdf}
+              disabled={pdfLoading}
+              className="inline-flex w-full items-center justify-center rounded-2xl bg-purple-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-purple-500/25 hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto sm:px-5"
+            >
+              {pdfLoading ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <Download className="mr-2 h-5 w-5" />
+              )}
+              Download PDF
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
       {showJobsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">
