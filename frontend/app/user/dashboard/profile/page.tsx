@@ -17,7 +17,7 @@ import {
   User,
 } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://neurohire-ai.onrender.com";
 
 type UserProfile = {
   id?: string;

@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import BorderGlow from "../../src/components/ui/BorderGlow";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://neurohire-ai.onrender.com";
 
 function GoogleIcon() {
   return (
