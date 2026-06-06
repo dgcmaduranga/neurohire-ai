@@ -58,24 +58,24 @@ export default function CardSwap({
   children,
 }: CardSwapProps) {
   const childArr = useMemo(() => Children.toArray(children), [children]);
-
-  const refs = useMemo(
-    () => childArr.map(() => React.createRef<HTMLDivElement>()),
-    [childArr.length]
-  );
-
-  const order = useRef<number[]>(childArr.map((_, i) => i));
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const order = useRef<number[]>([]);
   const intervalRef = useRef<number | null>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const total = refs.length;
+    const container = containerRef.current;
+    if (!container) return;
 
-    refs.forEach((ref, index) => {
-      const el = ref.current;
-      if (!el) return;
+    const cards = Array.from(
+      container.querySelectorAll<HTMLDivElement>(".card")
+    );
 
+    order.current = cards.map((_, i) => i);
+
+    const total = cards.length;
+
+    cards.forEach((el, index) => {
       const slot = makeSlot(index, cardDistance, verticalDistance, total);
 
       gsap.set(el, {
@@ -110,7 +110,7 @@ export default function CardSwap({
       if (order.current.length < 2) return;
 
       const [front, ...rest] = order.current;
-      const frontEl = refs[front]?.current;
+      const frontEl = cards[front];
       if (!frontEl) return;
 
       const tl = gsap.timeline();
@@ -124,10 +124,10 @@ export default function CardSwap({
       });
 
       rest.forEach((idx, i) => {
-        const el = refs[idx]?.current;
+        const el = cards[idx];
         if (!el) return;
 
-        const slot = makeSlot(i, cardDistance, verticalDistance, refs.length);
+        const slot = makeSlot(i, cardDistance, verticalDistance, total);
 
         tl.set(el, { zIndex: slot.zIndex }, "-=1");
         tl.to(
@@ -144,10 +144,10 @@ export default function CardSwap({
       });
 
       const backSlot = makeSlot(
-        refs.length - 1,
+        total - 1,
         cardDistance,
         verticalDistance,
-        refs.length
+        total
       );
 
       tl.set(frontEl, { zIndex: backSlot.zIndex, opacity: 1 });
@@ -167,10 +167,39 @@ export default function CardSwap({
     swap();
     intervalRef.current = window.setInterval(swap, delay);
 
-    return () => {
+    const pause = () => {
+      tlRef.current?.pause();
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [cardDistance, verticalDistance, delay, skewAmount, easing, refs]);
+
+    const resume = () => {
+      tlRef.current?.play();
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = window.setInterval(swap, delay);
+    };
+
+    if (pauseOnHover) {
+      container.addEventListener("mouseenter", pause);
+      container.addEventListener("mouseleave", resume);
+    }
+
+    return () => {
+      if (pauseOnHover) {
+        container.removeEventListener("mouseenter", pause);
+        container.removeEventListener("mouseleave", resume);
+      }
+
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [
+    childArr.length,
+    cardDistance,
+    verticalDistance,
+    delay,
+    pauseOnHover,
+    skewAmount,
+    easing,
+  ]);
 
   const rendered = childArr.map((child, index) => {
     if (!isValidElement(child)) return child;
