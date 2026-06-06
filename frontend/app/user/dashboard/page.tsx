@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -72,7 +72,7 @@ type DashboardResponse = {
   message?: string;
 };
 
-export default function DashboardPage() {
+function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -108,11 +108,8 @@ export default function DashboardPage() {
       }
 
       try {
-        if (silent) {
-          setRefreshing(true);
-        } else {
-          setLoading(true);
-        }
+        if (silent) setRefreshing(true);
+        else setLoading(true);
 
         const response = await fetch(`${API_URL}/dashboard/summary`, {
           method: "GET",
@@ -163,7 +160,11 @@ export default function DashboardPage() {
       return;
     }
 
-    fetchDashboardSummary(false);
+    const timeoutId = window.setTimeout(() => {
+      fetchDashboardSummary(false);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [router, searchParams, fetchDashboardSummary]);
 
   if (loading) {
@@ -441,6 +442,25 @@ export default function DashboardPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="grid min-h-[70vh] place-items-center">
+          <div className="rounded-[2rem] border border-blue-100 bg-white p-8 text-center shadow-xl shadow-blue-100/50">
+            <Loader2 className="mx-auto h-10 w-10 animate-spin text-blue-600" />
+            <h2 className="mt-4 text-xl font-black text-slate-950">
+              Loading dashboard...
+            </h2>
+          </div>
+        </div>
+      }
+    >
+      <DashboardContent />
+    </Suspense>
   );
 }
 
