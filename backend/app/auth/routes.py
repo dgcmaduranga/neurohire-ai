@@ -35,7 +35,7 @@ async def google_login(request: GoogleLoginRequest):
 
 @router.get("/google/login")
 async def google_login_redirect():
-    redirect_uri = f"{settings.BACKEND_URL}/auth/google/callback"
+    redirect_uri = f"{settings.BACKEND_URL.rstrip('/')}/auth/google/callback"
 
     params = {
         "client_id": settings.GOOGLE_CLIENT_ID,
@@ -51,7 +51,7 @@ async def google_login_redirect():
         + urlencode(params)
     )
 
-    return RedirectResponse(google_auth_url)
+    return RedirectResponse(url=google_auth_url, status_code=302)
 
 
 @router.get("/google/callback")
@@ -71,7 +71,7 @@ async def google_callback(
             detail="Google authorization code not found",
         )
 
-    redirect_uri = f"{settings.BACKEND_URL}/auth/google/callback"
+    redirect_uri = f"{settings.BACKEND_URL.rstrip('/')}/auth/google/callback"
 
     async with httpx.AsyncClient(timeout=30) as client:
         token_response = await client.post(
@@ -83,6 +83,9 @@ async def google_callback(
                 "redirect_uri": redirect_uri,
                 "grant_type": "authorization_code",
             },
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
         )
 
     token_data = token_response.json()
@@ -93,17 +96,27 @@ async def google_callback(
             detail=token_data,
         )
 
-    if "id_token" not in token_data:
+    id_token_value = token_data.get("id_token")
+
+    if not id_token_value:
         raise HTTPException(
             status_code=400,
             detail=token_data,
         )
 
-    login_data = await google_login_user(token=token_data["id_token"])
+    login_data = await google_login_user(token=id_token_value)
+
+    app_token = login_data.get("token")
+
+    if not app_token:
+        raise HTTPException(
+            status_code=500,
+            detail="Application token was not generated",
+        )
 
     frontend_url = (
-        f"{settings.FRONTEND_URL}/user/dashboard"
-        f"?token={login_data['token']}"
+        f"{settings.FRONTEND_URL.rstrip('/')}/user/dashboard"
+        f"?token={app_token}"
     )
 
-    return RedirectResponse(frontend_url)
+    return RedirectResponse(url=frontend_url, status_code=302)
