@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef, useCallback, useEffect } from "react";
-import "./BorderGlow.css";
+import React, { useCallback, useEffect, useRef } from "react";
 
 type BorderGlowProps = {
   children: React.ReactNode;
@@ -21,7 +20,12 @@ type BorderGlowProps = {
 function parseHSL(hslStr: string) {
   const match = hslStr.match(/([\d.]+)\s*([\d.]+)%?\s*([\d.]+)%?/);
   if (!match) return { h: 40, s: 80, l: 80 };
-  return { h: Number(match[1]), s: Number(match[2]), l: Number(match[3]) };
+
+  return {
+    h: Number(match[1]),
+    s: Number(match[2]),
+    l: Number(match[3]),
+  };
 }
 
 function buildGlowVars(glowColor: string, intensity: number) {
@@ -41,7 +45,7 @@ function buildGlowVars(glowColor: string, intensity: number) {
   return vars;
 }
 
-function BorderGlow({
+export default function BorderGlow({
   children,
   className = "",
   edgeSensitivity = 30,
@@ -57,69 +61,156 @@ function BorderGlow({
 }: BorderGlowProps) {
   const cardRef = useRef<HTMLDivElement | null>(null);
 
-  const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    const card = cardRef.current;
-    if (!card) return;
+  const handlePointerMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const card = cardRef.current;
+      if (!card) return;
 
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const cx = rect.width / 2;
-    const cy = rect.height / 2;
+      const rect = card.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
 
-    const dx = x - cx;
-    const dy = y - cy;
-    const edge = Math.min(
-      Math.max(1 / Math.min(cx / Math.abs(dx || 1), cy / Math.abs(dy || 1)), 0),
-      1
-    );
+      const dx = x - cx;
+      const dy = y - cy;
 
-    let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
-    if (angle < 0) angle += 360;
+      const edge = Math.min(
+        Math.max(1 / Math.min(cx / Math.abs(dx || 1), cy / Math.abs(dy || 1)), 0),
+        1
+      );
 
-    card.style.setProperty("--edge-proximity", `${edge * 100}`);
-    card.style.setProperty("--cursor-angle", `${angle}deg`);
-  }, []);
+      let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+      if (angle < 0) angle += 360;
+
+      card.style.setProperty("--edge-proximity", `${edge * 100}`);
+      card.style.setProperty("--cursor-angle", `${angle}deg`);
+    },
+    []
+  );
 
   useEffect(() => {
     if (!animated || !cardRef.current) return;
+
     const card = cardRef.current;
     card.classList.add("sweep-active");
     card.style.setProperty("--edge-proximity", "100");
     card.style.setProperty("--cursor-angle", "120deg");
 
-    const timer = setTimeout(() => {
+    const timer = window.setTimeout(() => {
       card.style.setProperty("--edge-proximity", "0");
       card.classList.remove("sweep-active");
     }, 1600);
 
-    return () => clearTimeout(timer);
+    return () => window.clearTimeout(timer);
   }, [animated]);
 
   return (
-    <div
-      ref={cardRef}
-      onPointerMove={handlePointerMove}
-      className={`border-glow-card ${className}`}
-      style={
-        {
-          "--card-bg": backgroundColor,
-          "--edge-sensitivity": edgeSensitivity,
-          "--border-radius": `${borderRadius}px`,
-          "--glow-padding": `${glowRadius}px`,
-          "--cone-spread": coneSpread,
-          "--fill-opacity": fillOpacity,
-          "--gradient-one": `radial-gradient(at 80% 55%, ${colors[0]} 0px, transparent 50%)`,
-          "--gradient-two": `radial-gradient(at 20% 20%, ${colors[1]} 0px, transparent 50%)`,
-          "--gradient-three": `radial-gradient(at 50% 90%, ${colors[2]} 0px, transparent 50%)`,
-          ...buildGlowVars(glowColor, glowIntensity),
-        } as React.CSSProperties
-      }
-    >
-      <span className="edge-light" />
-      <div className="border-glow-inner">{children}</div>
-    </div>
+    <>
+      <style jsx global>{`
+        .border-glow-card {
+          position: relative;
+          border-radius: var(--border-radius);
+          padding: 1px;
+          background: var(--card-bg);
+          overflow: hidden;
+          isolation: isolate;
+        }
+
+        .border-glow-card::before {
+          content: "";
+          position: absolute;
+          inset: calc(var(--glow-padding) * -1);
+          border-radius: inherit;
+          background:
+            conic-gradient(
+              from var(--cursor-angle, 120deg),
+              transparent 0deg,
+              var(--glow-color-10) calc(var(--cone-spread) * 1deg),
+              var(--glow-color-30) calc(var(--cone-spread) * 2deg),
+              var(--glow-color-60) calc(var(--cone-spread) * 3deg),
+              var(--glow-color) calc(var(--cone-spread) * 4deg),
+              var(--glow-color-60) calc(var(--cone-spread) * 5deg),
+              var(--glow-color-20) calc(var(--cone-spread) * 6deg),
+              transparent calc(var(--cone-spread) * 7deg)
+            ),
+            var(--gradient-one),
+            var(--gradient-two),
+            var(--gradient-three);
+          opacity: calc(var(--edge-proximity, 0) / 100);
+          filter: blur(18px);
+          z-index: -2;
+          transition: opacity 220ms ease;
+        }
+
+        .border-glow-card::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          padding: 1px;
+          background:
+            linear-gradient(
+              var(--cursor-angle, 120deg),
+              transparent,
+              var(--glow-color-50),
+              transparent
+            );
+          opacity: calc(var(--edge-proximity, 0) / 100);
+          pointer-events: none;
+          z-index: 1;
+          transition: opacity 220ms ease;
+        }
+
+        .edge-light {
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          background:
+            var(--gradient-one),
+            var(--gradient-two),
+            var(--gradient-three);
+          opacity: var(--fill-opacity);
+          pointer-events: none;
+          z-index: -1;
+        }
+
+        .border-glow-inner {
+          position: relative;
+          z-index: 2;
+          height: 100%;
+          width: 100%;
+          border-radius: calc(var(--border-radius) - 1px);
+        }
+
+        .sweep-active::before,
+        .sweep-active::after {
+          transition: opacity 500ms ease;
+        }
+      `}</style>
+
+      <div
+        ref={cardRef}
+        onPointerMove={handlePointerMove}
+        className={`border-glow-card ${className}`}
+        style={
+          {
+            "--card-bg": backgroundColor,
+            "--edge-sensitivity": edgeSensitivity,
+            "--border-radius": `${borderRadius}px`,
+            "--glow-padding": `${glowRadius}px`,
+            "--cone-spread": coneSpread,
+            "--fill-opacity": fillOpacity,
+            "--gradient-one": `radial-gradient(at 80% 55%, ${colors[0]} 0px, transparent 50%)`,
+            "--gradient-two": `radial-gradient(at 20% 20%, ${colors[1]} 0px, transparent 50%)`,
+            "--gradient-three": `radial-gradient(at 50% 90%, ${colors[2]} 0px, transparent 50%)`,
+            ...buildGlowVars(glowColor, glowIntensity),
+          } as React.CSSProperties
+        }
+      >
+        <span className="edge-light" />
+        <div className="border-glow-inner">{children}</div>
+      </div>
+    </>
   );
 }
-
-export default BorderGlow;
